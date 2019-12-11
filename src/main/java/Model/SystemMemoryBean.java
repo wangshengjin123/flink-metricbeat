@@ -1,6 +1,6 @@
 package Model;
 
-public class SystemDiskioBean {
+public class SystemMemoryBean {
     //SystemDiskioBean>diskiobean>iobean
     /*
   "system": {
@@ -18,15 +18,15 @@ public class SystemDiskioBean {
     }
   },
      */
-    private diskiobean diskio;
-    public diskiobean getDiskio() {
-        return diskio;
+    private memeorybean memory;
+    public memeorybean getMemory() {
+        return memory;
     }
-    public void setDiskio(diskiobean diskio) {
-        this.diskio = diskio;
+    public void setMemory(memeorybean diskio) {
+        this.memory = diskio;
     }
 
-    public class diskiobean {
+    public class memeorybean {
         private String name;
         private String serial_number;
 

@@ -1,4 +1,4 @@
-package hbase;
+package Hbase;
 
 import tool.ConnectionException;
 import tool.ConnectionPool;
