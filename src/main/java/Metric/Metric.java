@@ -101,13 +101,13 @@ public class Metric {
         //拆分字符串
         //{"io":{"time":"862"},"iostat":{"await":"0","busy":"0","service_time":"0"},"name":"vda1","serial_number":"6c499d2dbe9f471daa8f"}
         //Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String>
-        DataStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>> union = map_dd.union(map_dd).union(map_dd);
+/*        DataStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>> union = map_dd.union(map_dd).union(map_dd);
         KeyedStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>, Integer> tuple4IntegerKeyedStream = union.keyBy(new KeySelector<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>>() {
             @Override
             public Integer getKey(Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String> value) throws Exception {
                 return Integer.parseInt(value.f0) % 1;
             }
-        });
+        });*/
 
         // map.rebalance()  map是字符串，也就是model中解析的json——从kafka读什么，过滤一部分不要的字段再sink
         //filterData.rebalance()  filterData是全部数据，没有经过model解析，——从kafka读到了什么，就sink什么
