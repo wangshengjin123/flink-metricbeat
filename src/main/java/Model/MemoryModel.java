@@ -40,11 +40,7 @@ public class MemoryModel{
     private MetricsetBean metricset;
     //对json中4个嵌套,对应4个bean，每个bean一个单独的文件
 
-    @Override
-    public String toString() {
-        return "DiskioModel{" +
-                "system='}'";
-    }
+
 
 
 /*    public Timestamp getTime() {
