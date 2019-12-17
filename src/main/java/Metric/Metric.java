@@ -2,13 +2,13 @@ package Metric;
 
 import Model.DiskioModel;
 import Model.MemoryModel;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.streaming.api.datastream.*;
 import org.apache.hadoop.hbase.client.Put;
 import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.hadoop.conf.Configuration;
@@ -16,6 +16,9 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Table;
+
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple;
 
 import java.io.IOException;
 import java.util.Date;
@@ -47,7 +50,7 @@ public class Metric {
                 //System.out.println(Model.getSystem().getDiskio());
                 if(Model1.getSystem().getDiskio()!=null)
                 {
-                    System.out.println("为空");
+                    System.out.println("此条为磁盘数据");
                     return true;}
                 else
                     return false;
@@ -62,12 +65,13 @@ public class Metric {
                 //System.out.println(Model.getSystem().getDiskio());
                 if(Model2.getSystem().getMemory()!=null)
                 {
-                    System.out.println("为空");
+                    System.out.println("此条为内存数据");
                     return true;}
                 else
                     return false;
             }
         });
+        //对象转化为字符串
         SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
@@ -86,9 +90,28 @@ public class Metric {
                 return JSON.toJSONString(system);
             }
         });
-        // map.rebalance()  map是对象里面的内容，也就是model中解析的json——从kafka读什么，过滤一部分不要的字段再sink
+        //对象转化为字符串——部分
+        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
+            @Override
+            public String map(String s) throws Exception {
+                DiskioModel Model1= JSON.parseObject(s, DiskioModel.class);
+                return JSON.toJSONString(Model1.getSystem().getDiskio());
+            }
+        });
+        //拆分字符串
+        //{"io":{"time":"862"},"iostat":{"await":"0","busy":"0","service_time":"0"},"name":"vda1","serial_number":"6c499d2dbe9f471daa8f"}
+        //Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String>
+        DataStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>> union = map_dd.union(map_dd).union(map_dd);
+        KeyedStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>, Integer> tuple4IntegerKeyedStream = union.keyBy(new KeySelector<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>>() {
+            @Override
+            public Integer getKey(Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String> value) throws Exception {
+                return Integer.parseInt(value.f0) % 1;
+            }
+        });
+
+        // map.rebalance()  map是字符串，也就是model中解析的json——从kafka读什么，过滤一部分不要的字段再sink
         //filterData.rebalance()  filterData是全部数据，没有经过model解析，——从kafka读到了什么，就sink什么
-        map1.rebalance().map(new MapFunction<String, Object>() {
+        map_dd.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
             public String map(String value)throws IOException{
                 System.out.println(value);
@@ -96,6 +119,7 @@ public class Metric {
                 return null;
             }
         });
+
         map2.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
             public String map(String value)throws IOException{
