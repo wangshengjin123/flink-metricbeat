@@ -1,9 +1,9 @@
 package Metric;
 
-import Model.DiskioModel;
-import Model.MemoryModel;
-import org.apache.flink.api.java.tuple.Tuple3;
+import DiskModel.DiskioModel;
+import MemModel.MemoryModel;
 import org.apache.flink.streaming.api.datastream.*;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.hadoop.hbase.client.Put;
 import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -16,9 +16,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Table;
-
-import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple;
 
 import java.io.IOException;
 import java.util.Date;
@@ -40,8 +37,8 @@ public class Metric {
         poro.setProperty("group.id", "test1");
         FlinkKafkaConsumer011 kafkaConsumer011 = new FlinkKafkaConsumer011("hostmetric", new SimpleStringSchema(), poro);
         kafkaConsumer011.setStartFromEarliest();DataStreamSource<String> data = env.addSource(kafkaConsumer011);
-//DiskioModel
-        SingleOutputStreamOperator filterData1 = data.filter(new FilterFunction<String>() {
+        //DiskioModel
+/*        SingleOutputStreamOperator filterData1 = data.filter(new FilterFunction<String>() {
             @Override
             public boolean filter(String s) throws Exception {
                 //json转化为model对象
@@ -55,7 +52,8 @@ public class Metric {
                 else
                     return false;
             }
-        });
+        });*/
+        //MemoryModel
         SingleOutputStreamOperator filterData2 = data.filter(new FilterFunction<String>() {
             @Override
             public boolean filter(String s) throws Exception {
@@ -63,6 +61,7 @@ public class Metric {
                 MemoryModel Model2 = JSON.parseObject(s, MemoryModel.class);
                 //判断model中getDiskio是否为空，来判断kakfa的这一条数据是id的还是cpu的 还是内存的，来实现分类
                 //System.out.println(Model.getSystem().getDiskio());
+                System.out.println(Model2.getSystem().getMemory());
                 if(Model2.getSystem().getMemory()!=null)
                 {
                     System.out.println("此条为内存数据");
@@ -72,7 +71,7 @@ public class Metric {
             }
         });
         //对象转化为字符串
-        SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
+/*        SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
@@ -80,58 +79,54 @@ public class Metric {
                 DiskioModel system = JSON.parseObject(s, DiskioModel.class);
                 return JSON.toJSONString(system);
             }
-        });
+        });*/
         SingleOutputStreamOperator<String> map2 = filterData2.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
-             //   JSONObject jsonObject = JSON.parseObject(s);
+                //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                DiskioModel system = JSON.parseObject(s, DiskioModel.class);
+                MemoryModel system = JSON.parseObject(s, MemoryModel.class);
                 return JSON.toJSONString(system);
             }
         });
+
         //对象转化为字符串——部分
-        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
+/*        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 DiskioModel Model1= JSON.parseObject(s, DiskioModel.class);
                 return JSON.toJSONString(Model1.getSystem().getDiskio());
             }
-        });
-        //拆分字符串
-        //{"io":{"time":"862"},"iostat":{"await":"0","busy":"0","service_time":"0"},"name":"vda1","serial_number":"6c499d2dbe9f471daa8f"}
-        //Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String>
-/*        DataStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>> union = map_dd.union(map_dd).union(map_dd);
-        KeyedStream<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>, Integer> tuple4IntegerKeyedStream = union.keyBy(new KeySelector<Tuple4<Tuple<Integer>,Tuple3<String,String,String>,String,String>>() {
+        });*/
+        SingleOutputStreamOperator<String> map_ee = map2.map(new MapFunction<String, String>() {
             @Override
-            public Integer getKey(Tuple4<Tuple<String>,Tuple3<String,String,String>,String,String> value) throws Exception {
-                return Integer.parseInt(value.f0) % 1;
+            public String map(String s) throws Exception {
+                MemoryModel system= JSON.parseObject(s, MemoryModel.class);
+                return JSON.toJSONString(system.getSystem().getMemory().getUsed1().getPct());
+            }
+        });
+
+/*        map_dd.rebalance().map(new MapFunction<String, Object>() {
+            private static final long serialVersionUID = 1L;
+            public String map(String value)throws IOException{
+                System.out.println(value);
+                writeIntoHBase(value);
+                return null;
             }
         });*/
 
-        // map.rebalance()  map是字符串，也就是model中解析的json——从kafka读什么，过滤一部分不要的字段再sink
-        //filterData.rebalance()  filterData是全部数据，没有经过model解析，——从kafka读到了什么，就sink什么
-        map_dd.rebalance().map(new MapFunction<String, Object>() {
+/*        map_ee.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
             public String map(String value)throws IOException{
                 System.out.println(value);
                 writeIntoHBase(value);
                 return null;
             }
-        });
-
-        map2.rebalance().map(new MapFunction<String, Object>() {
-            private static final long serialVersionUID = 1L;
-            public String map(String value)throws IOException{
-                System.out.println(value);
-                writeIntoHBase(value);
-                return null;
-            }
-        });
-//        Properties sinkPoro= new Properties();
-            //       sinkPoro.setProperty("bootstrap.servers", "172.17.0.56:9092");
-            //       FlinkKafkaProducer011 diskiometric = new FlinkKafkaProducer011("host", new SimpleStringSchema(), sinkPoro);
-            //map.addSink(diskiometric);
+        });*/
+        Properties sinkPoro= new Properties();
+                   sinkPoro.setProperty("bootstrap.servers", "172.17.0.56:9092");
+                   FlinkKafkaProducer011 memmetric = new FlinkKafkaProducer011("host", new SimpleStringSchema(), sinkPoro);
+        map_ee.addSink(memmetric);
         env.execute("job name");
 
 }
