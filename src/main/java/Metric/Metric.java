@@ -102,7 +102,7 @@ public class Metric {
             @Override
             public String map(String s) throws Exception {
                 MemoryModel system= JSON.parseObject(s, MemoryModel.class);
-                return JSON.toJSONString(system.getSystem().getMemory().getUsed1().getPct());
+                return JSON.toJSONString(system);
             }
         });
 
@@ -125,7 +125,7 @@ public class Metric {
         });*/
         Properties sinkPoro= new Properties();
                    sinkPoro.setProperty("bootstrap.servers", "172.17.0.56:9092");
-                   FlinkKafkaProducer011 memmetric = new FlinkKafkaProducer011("host", new SimpleStringSchema(), sinkPoro);
+                   FlinkKafkaProducer011 memmetric = new FlinkKafkaProducer011("hostm", new SimpleStringSchema(), sinkPoro);
         map_ee.addSink(memmetric);
         env.execute("job name");
 

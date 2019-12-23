@@ -121,12 +121,7 @@ public class SystemMemoryBean {
                 this.pct = pct;
             }
 
-            @Override
-            public String toString() {
-                return "usedbean{" +
-                        "pct='" + pct + '\'' +
-                        '}';
-            }
+
         }
     }
 
