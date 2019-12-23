@@ -1,18 +1,9 @@
-package Model;
+package DiskModel;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Calendar;
-import java.util.Date;
+import Model.BeatBean;
+import Model.HostBean;
+import Model.MetricsetBean;
+
 public class DiskioModel{
     /**
      * {
