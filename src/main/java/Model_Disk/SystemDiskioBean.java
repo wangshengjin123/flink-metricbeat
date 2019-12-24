@@ -1,4 +1,4 @@
-package DiskModel;
+package Model_Disk;
 
 public class SystemDiskioBean {
     //SystemDiskioBean>diskiobean>iobean

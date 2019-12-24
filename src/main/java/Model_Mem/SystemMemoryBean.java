@@ -1,4 +1,5 @@
-package MemModel;
+package Model_Mem;
+
 
 public class SystemMemoryBean {
 
@@ -36,6 +37,8 @@ public class SystemMemoryBean {
          */
         private String total;
         private String free;
+        private Actualbean actual;
+        private usedbean used;
 
         public String getTotal() {
             return total;
@@ -53,26 +56,28 @@ public class SystemMemoryBean {
             this.free = free;
         }
 
-        private usedbean used1;
-        private actualbean actual;
-        public usedbean getUsed1() {return used1; }
-        public void setUsed1(usedbean used1) {this.used1 = used1; }
-
-        public actualbean getActual() {
+        public Actualbean getActual() {
             return actual;
         }
 
-        public void setActual(actualbean actual) {
+        public void setActual(Actualbean actual) {
             this.actual = actual;
         }
 
-        public class actualbean
+        public usedbean getUsed() {
+            return used;
+        }
+
+        public void setUsed(usedbean used) {
+            this.used = used;
+        }
+/*        public class actualbean
         {
-            /*
+            *//*
       "actual": {
       "used":{}
     }
-         */
+         *//*
             private String free;
 
             public String getFree() {
@@ -94,11 +99,11 @@ public class SystemMemoryBean {
             }
 
             public class usedbean {
-/*           "free": 3005034496,
-             "used": {
-                 "bytes": 15317372928,
-                  "pct": 0.836  //取真实内存的百分比
-              }*/
+                *//*           "free": 3005034496,
+                             "used": {
+                                 "bytes": 15317372928,
+                                  "pct": 0.836  //取真实内存的百分比
+                              }*//*
                 private String pct;
                 public String getPct() {
                     return pct;
@@ -108,7 +113,8 @@ public class SystemMemoryBean {
                 }
 
             }
-        }
+        }*/
+
         public class usedbean
         {
             private String pct;

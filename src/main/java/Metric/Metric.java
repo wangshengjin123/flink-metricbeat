@@ -1,7 +1,7 @@
 package Metric;
 
-import DiskModel.DiskioModel;
-import MemModel.MemoryModel;
+import Model_Disk.DiskioModel;
+import Model_Mem.MemoryModel;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.hadoop.hbase.client.Put;
@@ -38,7 +38,7 @@ public class Metric {
         FlinkKafkaConsumer011 kafkaConsumer011 = new FlinkKafkaConsumer011("hostmetric", new SimpleStringSchema(), poro);
         kafkaConsumer011.setStartFromEarliest();DataStreamSource<String> data = env.addSource(kafkaConsumer011);
         //DiskioModel
-/*        SingleOutputStreamOperator filterData1 = data.filter(new FilterFunction<String>() {
+        SingleOutputStreamOperator filterData1 = data.filter(new FilterFunction<String>() {
             @Override
             public boolean filter(String s) throws Exception {
                 //json转化为model对象
@@ -52,7 +52,7 @@ public class Metric {
                 else
                     return false;
             }
-        });*/
+        });
         //MemoryModel
         SingleOutputStreamOperator filterData2 = data.filter(new FilterFunction<String>() {
             @Override
@@ -61,7 +61,7 @@ public class Metric {
                 MemoryModel Model2 = JSON.parseObject(s, MemoryModel.class);
                 //判断model中getDiskio是否为空，来判断kakfa的这一条数据是id的还是cpu的 还是内存的，来实现分类
                 //System.out.println(Model.getSystem().getDiskio());
-                System.out.println(Model2.getSystem().getMemory());
+                //System.out.println(Model2.getSystem().getMemory());
                 if(Model2.getSystem().getMemory()!=null)
                 {
                     System.out.println("此条为内存数据");
@@ -71,7 +71,7 @@ public class Metric {
             }
         });
         //对象转化为字符串
-/*        SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
+        SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
@@ -79,7 +79,7 @@ public class Metric {
                 DiskioModel system = JSON.parseObject(s, DiskioModel.class);
                 return JSON.toJSONString(system);
             }
-        });*/
+        });
         SingleOutputStreamOperator<String> map2 = filterData2.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
@@ -91,29 +91,29 @@ public class Metric {
         });
 
         //对象转化为字符串——部分
-/*        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
+        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 DiskioModel Model1= JSON.parseObject(s, DiskioModel.class);
                 return JSON.toJSONString(Model1.getSystem().getDiskio());
             }
-        });*/
+        });
         SingleOutputStreamOperator<String> map_ee = map2.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 MemoryModel system= JSON.parseObject(s, MemoryModel.class);
-                return JSON.toJSONString(system);
+                return JSON.toJSONString(system.getSystem().getMemory());
             }
         });
 
-/*        map_dd.rebalance().map(new MapFunction<String, Object>() {
+        map_dd.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
             public String map(String value)throws IOException{
                 System.out.println(value);
                 writeIntoHBase(value);
                 return null;
             }
-        });*/
+        });
 
 /*        map_ee.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
@@ -126,6 +126,7 @@ public class Metric {
         Properties sinkPoro= new Properties();
                    sinkPoro.setProperty("bootstrap.servers", "172.17.0.56:9092");
                    FlinkKafkaProducer011 memmetric = new FlinkKafkaProducer011("hostm", new SimpleStringSchema(), sinkPoro);
+        map_ee.print();
         map_ee.addSink(memmetric);
         env.execute("job name");
 

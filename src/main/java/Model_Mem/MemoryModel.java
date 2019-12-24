@@ -1,10 +1,10 @@
-package DiskModel;
+package Model_Mem;
 
 import Model.BeatBean;
 import Model.HostBean;
 import Model.MetricsetBean;
 
-public class DiskioModel{
+public class MemoryModel{
     /**
      * {
      *   "@timestamp": "2019-12-04T06:40:38.212Z",
@@ -25,17 +25,13 @@ public class DiskioModel{
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String date = df.format(new Date());*/
 
-    private SystemDiskioBean system;
+    private SystemMemoryBean system;
     private BeatBean beat;
     private HostBean host;
     private MetricsetBean metricset;
     //对json中4个嵌套,对应4个bean，每个bean一个单独的文件
 
-    @Override
-    public String toString() {
-        return "DiskioModel{" +
-                "system='}'";
-    }
+
 
 
 /*    public Timestamp getTime() {
@@ -57,10 +53,8 @@ public class DiskioModel{
         this.date = date;
     }*/
 
-    public SystemDiskioBean getSystem() {
-        return system;
-    }
-    public void setSystem(SystemDiskioBean system) {
+    public SystemMemoryBean getSystem() {return system; }
+    public void setSystem(SystemMemoryBean system) {
         this.system = system;
     }
     public BeatBean getBeat() {
