@@ -1,9 +1,13 @@
 package Metric;
 
+import Model_Cpu.CpuModel;
 import Model_Disk.DiskioModel;
-import Model_Mem.MemoryModel;
+import Model_Mem.*;
 import org.apache.flink.streaming.api.datastream.*;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
+import org.apache.flink.util.Collector;
 import org.apache.hadoop.hbase.client.Put;
 import com.alibaba.fastjson.JSON;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -18,7 +22,9 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Table;
 
 import java.io.IOException;
+import java.security.Timestamp;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -58,6 +64,7 @@ public class Metric {
             @Override
             public boolean filter(String s) throws Exception {
                 //json转化为model对象
+                // MemoryModel 和 MetricModel
                 MemoryModel Model2 = JSON.parseObject(s, MemoryModel.class);
                 //判断model中getDiskio是否为空，来判断kakfa的这一条数据是id的还是cpu的 还是内存的，来实现分类
                 //System.out.println(Model.getSystem().getDiskio());
@@ -70,14 +77,31 @@ public class Metric {
                     return false;
             }
         });
+        SingleOutputStreamOperator filterData3 = data.filter(new FilterFunction<String>() {
+            @Override
+            public boolean filter(String s) throws Exception {
+                //json转化为model对象
+                // MemoryModel 和 MetricModel
+                CpuModel Model3 = JSON.parseObject(s, CpuModel.class);
+                //判断model中getDiskio是否为空，来判断kakfa的这一条数据是id的还是cpu的 还是内存的，来实现分类
+                //System.out.println(Model3.getSystem().getCpu());
+                //if(Model3.getMetricset().getName()=="cpu")
+                if(Model3.getSystem().getCpu()!=null)
+                {
+                    System.out.println("此条为cpu数据");
+                    return true;}
+                else
+                    return false;
+            }
+        });
         //对象转化为字符串
         SingleOutputStreamOperator<String> map1 = filterData1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                DiskioModel system = JSON.parseObject(s, DiskioModel.class);
-                return JSON.toJSONString(system);
+                DiskioModel system1 = JSON.parseObject(s, DiskioModel.class);
+                return JSON.toJSONString(system1);
             }
         });
         SingleOutputStreamOperator<String> map2 = filterData2.map(new MapFunction<String, String>() {
@@ -85,8 +109,17 @@ public class Metric {
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                MemoryModel system = JSON.parseObject(s, MemoryModel.class);
-                return JSON.toJSONString(system);
+                MemoryModel system2 = JSON.parseObject(s, MemoryModel.class);
+                return JSON.toJSONString(system2);
+            }
+        });
+        SingleOutputStreamOperator<String> map3 = filterData3.map(new MapFunction<String, String>() {
+            @Override
+            public String map(String s) throws Exception {
+                //   JSONObject jsonObject = JSON.parseObject(s);
+                //将model的对象转化为json
+                CpuModel system3 = JSON.parseObject(s, CpuModel.class);
+                return JSON.toJSONString(system3);
             }
         });
 
@@ -102,18 +135,23 @@ public class Metric {
             @Override
             public String map(String s) throws Exception {
                 MemoryModel system= JSON.parseObject(s, MemoryModel.class);
-                return JSON.toJSONString(system.getSystem().getMemory());
+                return JSON.toJSONString(system.getSystem().getMemory().getUsed());
             }
         });
 
-        map_dd.rebalance().map(new MapFunction<String, Object>() {
+        //public Timestamp time;
+ //       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //String date = df.format(new Date());
+
+
+/*        map_dd.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
             public String map(String value)throws IOException{
                 System.out.println(value);
                 writeIntoHBase(value);
                 return null;
             }
-        });
+        });*/
 
 /*        map_ee.rebalance().map(new MapFunction<String, Object>() {
             private static final long serialVersionUID = 1L;
@@ -123,13 +161,24 @@ public class Metric {
                 return null;
             }
         });*/
-        Properties sinkPoro= new Properties();
-                   sinkPoro.setProperty("bootstrap.servers", "172.17.0.56:9092");
-                   FlinkKafkaProducer011 memmetric = new FlinkKafkaProducer011("hostm", new SimpleStringSchema(), sinkPoro);
-        map_ee.print();
-        map_ee.addSink(memmetric);
-        env.execute("job name");
 
+
+        Properties sinkPoro1= new Properties();
+        sinkPoro1.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        FlinkKafkaProducer011 hostio = new FlinkKafkaProducer011("hostio", new SimpleStringSchema(), sinkPoro1);
+        map1.addSink(hostio);
+        //
+        Properties sinkPoro2= new Properties();
+        sinkPoro2.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        FlinkKafkaProducer011 hostmem = new FlinkKafkaProducer011("hostmem", new SimpleStringSchema(), sinkPoro2);
+        map2.addSink(hostmem);
+        //
+        Properties sinkPoro3= new Properties();
+        sinkPoro3.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        FlinkKafkaProducer011 hostcpu = new FlinkKafkaProducer011("hostcpu", new SimpleStringSchema(), sinkPoro3);
+        map3.addSink(hostcpu);
+        //
+        env.execute("job name");
 }
     private static TableName tableName = TableName.valueOf("Flink2HBase");
     private static final String columnFamily = "info";
