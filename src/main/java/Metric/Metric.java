@@ -39,7 +39,9 @@ public class Metric {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         Properties poro = new Properties();
-        poro.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        //ceshi:172.17.0.56:9092
+        // aliyun:172.16.2.37:9092
+        poro.setProperty("bootstrap.servers", "172.16.2.37:9092");
         poro.setProperty("group.id", "test1");
         FlinkKafkaConsumer011 kafkaConsumer011 = new FlinkKafkaConsumer011("hostmetric", new SimpleStringSchema(), poro);
         kafkaConsumer011.setStartFromEarliest();DataStreamSource<String> data = env.addSource(kafkaConsumer011);
@@ -162,19 +164,20 @@ public class Metric {
             }
         });*/
 
-
+//ceshi:172.17.0.56:9092
+//aliyun:172.16.2.37:9092
         Properties sinkPoro1= new Properties();
-        sinkPoro1.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        sinkPoro1.setProperty("bootstrap.servers", "172.16.2.37:9092");
         FlinkKafkaProducer011 hostio = new FlinkKafkaProducer011("hostio", new SimpleStringSchema(), sinkPoro1);
         map1.addSink(hostio);
         //
         Properties sinkPoro2= new Properties();
-        sinkPoro2.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        sinkPoro2.setProperty("bootstrap.servers", "172.16.2.37:9092");
         FlinkKafkaProducer011 hostmem = new FlinkKafkaProducer011("hostmem", new SimpleStringSchema(), sinkPoro2);
         map2.addSink(hostmem);
         //
         Properties sinkPoro3= new Properties();
-        sinkPoro3.setProperty("bootstrap.servers", "172.17.0.56:9092");
+        sinkPoro3.setProperty("bootstrap.servers", "172.16.2.37:9092");
         FlinkKafkaProducer011 hostcpu = new FlinkKafkaProducer011("hostcpu", new SimpleStringSchema(), sinkPoro3);
         map3.addSink(hostcpu);
         //
