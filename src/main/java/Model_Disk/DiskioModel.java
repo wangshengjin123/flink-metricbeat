@@ -3,6 +3,13 @@ package Model_Disk;
 import Model.BeatBean;
 import Model.HostBean;
 import Model.MetricsetBean;
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class DiskioModel{
     /**
@@ -24,6 +31,16 @@ public class DiskioModel{
 /*    public Timestamp time;
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String date = df.format(new Date());*/
+    @JSONField(format="yyyy-MM-ddTHH:mm:ssZ")
+    public Timestamp time;
+
+    public Timestamp getTime() {
+        return time;
+    }
+
+    public void setTime(Timestamp time) {
+        this.time = time;
+    }
 
     private SystemDiskioBean system;
     private BeatBean beat;

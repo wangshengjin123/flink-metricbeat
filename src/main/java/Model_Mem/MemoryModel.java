@@ -3,6 +3,9 @@ package Model_Mem;
 import Model.BeatBean;
 import Model.HostBean;
 import Model.MetricsetBean;
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.sql.Timestamp;
 
 public class MemoryModel{
     /**
@@ -24,7 +27,16 @@ public class MemoryModel{
 /*    public Timestamp time;
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String date = df.format(new Date());*/
+    @JSONField(format="yyyy-MM-ddTHH:mm:ssZ")
+    public Timestamp time;
 
+    public Timestamp getTime() {
+        return time;
+    }
+
+    public void setTime(Timestamp time) {
+        this.time = time;
+    }
     private SystemMemoryBean system;
     private BeatBean beat;
     private HostBean host;

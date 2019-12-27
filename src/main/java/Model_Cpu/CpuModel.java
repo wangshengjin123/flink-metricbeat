@@ -4,8 +4,21 @@ import Model.BeatBean;
 import Model.HostBean;
 import Model.MetricsetBean;
 import Model_Mem.SystemMemoryBean;
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.sql.Timestamp;
 
 public class CpuModel {
+    @JSONField(format="yyyy-MM-ddTHH:mm:ssZ")
+    public Timestamp time;
+
+    public Timestamp getTime() {
+        return time;
+    }
+
+    public void setTime(Timestamp time) {
+        this.time = time;
+    }
     private SystemCpuBean system;
     private BeatBean beat;
     private HostBean host;

@@ -3,6 +3,8 @@ package Metric;
 import Model_Cpu.CpuModel;
 import Model_Disk.DiskioModel;
 import Model_Mem.*;
+import com.alibaba.fastjson.JSONObject;
+import com.google.gson.JsonObject;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
@@ -22,7 +24,7 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Table;
 
 import java.io.IOException;
-import java.security.Timestamp;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
@@ -33,6 +35,7 @@ import org.apache.hadoop.hbase.client.Admin;
 
 import java.text.SimpleDateFormat;
 import Hbase.HbaseConnectionPool;
+import org.giiwa.core.base.Host;
 import tool.ConnectionPoolConfig;
 
 public class Metric {
@@ -50,9 +53,11 @@ public class Metric {
             @Override
             public boolean filter(String s) throws Exception {
                 //json转化为model对象
-                DiskioModel Model1= JSON.parseObject(s, DiskioModel.class);
+
+
                 //判断model中getDiskio是否为空，来判断kakfa的这一条数据是id的还是cpu的 还是内存的，来实现分类
-                //System.out.println(Model.getSystem().getDiskio());
+                DiskioModel Model1 = JSON.parseObject(s, DiskioModel.class);
+
                 if(Model1.getSystem().getDiskio()!=null)
                 {
                     System.out.println("此条为磁盘数据");
@@ -103,6 +108,13 @@ public class Metric {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
                 DiskioModel system1 = JSON.parseObject(s, DiskioModel.class);
+                //设置时间
+                Timestamp time1;
+                JSONObject Model1_1= JSON.parseObject(s);
+                time1=Model1_1.getTimestamp("@timestamp");
+                system1.setTime(time1);
+                System.out.println("磁盘："+system1.getTime());
+
                 return JSON.toJSONString(system1);
             }
         });
@@ -112,6 +124,12 @@ public class Metric {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
                 MemoryModel system2 = JSON.parseObject(s, MemoryModel.class);
+                //设置时间
+                Timestamp time2;
+                JSONObject Model2_2= JSON.parseObject(s);
+                time2=Model2_2.getTimestamp("@timestamp");
+                system2.setTime(time2);
+                System.out.println("内存："+ system2.getTime());
                 return JSON.toJSONString(system2);
             }
         });
@@ -121,6 +139,11 @@ public class Metric {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
                 CpuModel system3 = JSON.parseObject(s, CpuModel.class);
+                Timestamp time3;
+                JSONObject Model3_3= JSON.parseObject(s);
+                time3=Model3_3.getTimestamp("@timestamp");
+                system3.setTime(time3);
+                System.out.println("cpu："+ system3.getTime());
                 return JSON.toJSONString(system3);
             }
         });
