@@ -13,6 +13,7 @@ public class PhoenixWriter extends RichSinkFunction<MemoryModel> {
     private PreparedStatement preparedStatement;
 /*    String username = "xxxxxx";
     String password = "xxxxxx";*/
+//没成功
     String drivername = "org.apache.phoenix.jdbc.PhoenixDriver";
     String url = "jdbc:phoenix:172.17.0.56:2181";
     Properties props = new Properties();
