@@ -117,13 +117,13 @@ public class SystemMemoryBean {
 
         public class usedbean
         {
-            private String pct;
+            private double pct;
 
-            public String getPct() {
+            public double getPct() {
                 return pct;
             }
 
-            public void setPct(String pct) {
+            public void setPct(double pct) {
                 this.pct = pct;
             }
 

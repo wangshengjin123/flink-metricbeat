@@ -14,17 +14,17 @@ public class Actualbean
             this.free = free;
         }
 
-        private usedbean used;
+        private usedbeanxxx used;
 
-        public usedbean getUsed() {
+        public usedbeanxxx getUsed() {
             return used;
         }
 
-        public void setUsed(usedbean used) {
+        public void setUsed(usedbeanxxx used) {
             this.used = used;
         }
 
-        public class usedbean {
+        public class usedbeanxxx {
             private String pct;
 
             public String getPct() {
