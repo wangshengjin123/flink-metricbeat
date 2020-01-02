@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 import java.sql.Timestamp;
 
-
 public class MemoryM {
     private String host_name;
     private String metrictype;
