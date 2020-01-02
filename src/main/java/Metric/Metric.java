@@ -1,5 +1,8 @@
 package Metric;
 
+import Model.CpuM;
+import Model.DiskioM;
+import Model.MemoryM;
 import Model_Cpu.CpuModel;
 import Model_Disk.DiskioModel;
 import Model_Mem.*;
@@ -107,14 +110,35 @@ public class Metric {
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                DiskioModel system1 = JSON.parseObject(s, DiskioModel.class);
+                DiskioM system1 = JSON.parseObject(s, DiskioM.class);
                 //设置时间
                 Timestamp time1;
+                String host_name;
+                String metrictype;
+                String io_time;
+                String iostat_await;
+                String iostat_busy;
+                String iostat_time;
+                String disk_name;
                 JSONObject Model1_1= JSON.parseObject(s);
-                time1=Model1_1.getTimestamp("@timestamp");
-                system1.setTime(time1);
-                System.out.println("磁盘："+system1.getTime());
 
+                System.out.println("磁盘："+system1.getTime());
+                time1=Model1_1.getTimestamp("@timestamp");
+                host_name   =Model1_1.getJSONObject("host").getString("name");
+                metrictype  =Model1_1.getJSONObject("metricset").getString("name");
+                io_time     =Model1_1.getJSONObject("system").getJSONObject("diskio").getJSONObject("io").getString("time");
+                iostat_await=Model1_1.getJSONObject("system").getJSONObject("diskio").getJSONObject("iostat").getString("await");
+                iostat_busy =Model1_1.getJSONObject("system").getJSONObject("diskio").getJSONObject("iostat").getString("busy");
+                iostat_time =Model1_1.getJSONObject("system").getJSONObject("diskio").getJSONObject("iostat").getString("service_time");
+                disk_name   =Model1_1.getJSONObject("system").getJSONObject("diskio").getString("name");
+                system1.setTime(time1);
+                system1.setHost_name(host_name);
+                system1.setMetrictype(metrictype);
+                system1.setIo_time(io_time);
+                system1.setIostat_await(iostat_await);
+                system1.setIostat_busy(iostat_busy);
+                system1.setIostat_time(iostat_time);
+                system1.setDisk_name(disk_name);
                 return JSON.toJSONString(system1);
             }
         });
@@ -123,12 +147,17 @@ public class Metric {
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                MemoryModel system2 = JSON.parseObject(s, MemoryModel.class);
+                MemoryM system2 = JSON.parseObject(s, MemoryM.class);
                 //设置时间
                 Timestamp time2;
+                String host_name;
+                String metrictype;
                 JSONObject Model2_2= JSON.parseObject(s);
                 time2=Model2_2.getTimestamp("@timestamp");
                 system2.setTime(time2);
+                time2       =Model2_2.getTimestamp("time");
+                host_name   =Model2_2.getJSONObject("host").getString("name");
+                metrictype  =Model2_2.getJSONObject("metricset").getString("name");
                 System.out.println("内存："+ system2.getTime());
                 return JSON.toJSONString(system2);
             }
@@ -138,18 +167,56 @@ public class Metric {
             public String map(String s) throws Exception {
                 //   JSONObject jsonObject = JSON.parseObject(s);
                 //将model的对象转化为json
-                CpuModel system3 = JSON.parseObject(s, CpuModel.class);
+                CpuM system3 = JSON.parseObject(s, CpuM.class);
                 Timestamp time3;
+                String host_name;
+                String metrictype;
+                String core;
+                String idle_pct;
+                String iowait_pct;
+                String irq_pct;
+                String nice_pct;
+                String softirq_pct;
+                String steal_pct;
+                String system_pct;
+                String total_pct;
+                String user_pct;
                 JSONObject Model3_3= JSON.parseObject(s);
                 time3=Model3_3.getTimestamp("@timestamp");
+                host_name   =Model3_3.getJSONObject("host").getString("name");
+                metrictype  =Model3_3.getJSONObject("metricset").getString("name");
+
+                core=Model3_3.getJSONObject("system").getJSONObject("cpu").getString("cores");
+                idle_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("idle").getString("pct");
+                iowait_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("iowait").getString("pct");
+                irq_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("irq").getString("pct");
+                nice_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("nice").getString("pct");
+                softirq_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("softirq").getString("pct");
+                steal_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("steal").getString("pct");
+                system_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("system").getString("pct");
+                total_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("total").getString("pct");
+                user_pct =Model3_3.getJSONObject("system").getJSONObject("cpu").getJSONObject("user").getString("pct");
                 system3.setTime(time3);
+                system3.setHost_name(host_name);
+                system3.setMetrictype(metrictype);
+                system3.setCorenum(core);
+                system3.setIdle_pct(idle_pct);
+                system3.setIowait_pct(iowait_pct);
+                system3.setIrq_pct(irq_pct);
+                system3.setNice_pct(nice_pct);
+                system3.setSoftirq_pct(softirq_pct);
+                system3.setSteal_pct(steal_pct);
+                system3.setSystem_pct(system_pct);
+                system3.setTotal_pct(total_pct);
+                system3.setUser_pct(user_pct);
                 System.out.println("cpu："+ system3.getTime());
+
                 return JSON.toJSONString(system3);
             }
         });
 
         //对象转化为字符串——部分
-        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
+/*        SingleOutputStreamOperator<String> map_dd = map1.map(new MapFunction<String, String>() {
             @Override
             public String map(String s) throws Exception {
                 DiskioModel Model1= JSON.parseObject(s, DiskioModel.class);
@@ -162,7 +229,7 @@ public class Metric {
                 MemoryModel system= JSON.parseObject(s, MemoryModel.class);
                 return JSON.toJSONString(system.getSystem().getMemory().getUsed());
             }
-        });
+        });*/
 
         //public Timestamp time;
  //       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
