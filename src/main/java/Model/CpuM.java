@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 import java.sql.Timestamp;
 
+
 public class CpuM {
     private String host_name;
     private String metrictype;
