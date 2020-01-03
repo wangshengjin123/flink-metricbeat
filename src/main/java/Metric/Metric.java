@@ -50,7 +50,8 @@ public class Metric {
         poro.setProperty("bootstrap.servers", "172.16.2.37:9092");
         poro.setProperty("group.id", "test1");
         FlinkKafkaConsumer011 kafkaConsumer011 = new FlinkKafkaConsumer011("hostmetric", new SimpleStringSchema(), poro);
-        kafkaConsumer011.setStartFromEarliest();DataStreamSource<String> data = env.addSource(kafkaConsumer011);
+        kafkaConsumer011.setStartFromEarliest();
+        DataStreamSource<String> data = env.addSource(kafkaConsumer011);
         //DiskioModel
         SingleOutputStreamOperator filterData1 = data.filter(new FilterFunction<String>() {
             @Override
@@ -122,7 +123,7 @@ public class Metric {
                 String disk_name;
                 JSONObject Model1_1= JSON.parseObject(s);
 
-                System.out.println("磁盘："+system1.getTime());
+
                 time1=Model1_1.getTimestamp("@timestamp");
                 host_name   =Model1_1.getJSONObject("host").getString("name");
                 metrictype  =Model1_1.getJSONObject("metricset").getString("name");
@@ -139,6 +140,7 @@ public class Metric {
                 system1.setIostat_busy(iostat_busy);
                 system1.setIostat_time(iostat_time);
                 system1.setDisk_name(disk_name);
+                System.out.println("磁盘："+system1.getTime());
                 return JSON.toJSONString(system1);
             }
         });
@@ -152,12 +154,19 @@ public class Metric {
                 Timestamp time2;
                 String host_name;
                 String metrictype;
+                String pct;
                 JSONObject Model2_2= JSON.parseObject(s);
                 time2=Model2_2.getTimestamp("@timestamp");
-                system2.setTime(time2);
-                time2       =Model2_2.getTimestamp("time");
+                //time2       =Model2_2.getTimestamp("time");
                 host_name   =Model2_2.getJSONObject("host").getString("name");
                 metrictype  =Model2_2.getJSONObject("metricset").getString("name");
+                pct         =Model2_2.getJSONObject("system").getJSONObject("memory").getJSONObject("used").getString("pct");
+
+
+                system2.setTime(time2);
+                system2.setHost_name(host_name);
+                system2.setMetrictype(metrictype);
+                system2.setPct(pct);
                 System.out.println("内存："+ system2.getTime());
                 return JSON.toJSONString(system2);
             }
@@ -210,7 +219,6 @@ public class Metric {
                 system3.setTotal_pct(total_pct);
                 system3.setUser_pct(user_pct);
                 System.out.println("cpu："+ system3.getTime());
-
                 return JSON.toJSONString(system3);
             }
         });
