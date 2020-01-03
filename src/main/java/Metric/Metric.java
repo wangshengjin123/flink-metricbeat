@@ -155,6 +155,7 @@ public class Metric {
                 String host_name;
                 String metrictype;
                 String pct;
+
                 JSONObject Model2_2= JSON.parseObject(s);
                 time2=Model2_2.getTimestamp("@timestamp");
                 //time2       =Model2_2.getTimestamp("time");
